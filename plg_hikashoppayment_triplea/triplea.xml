@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" version="2.5" method="upgrade" group="hikashoppayment">
+	<name>Hikashop TripleA Payment Plugin</name>
+	<creationDate>10 July 2021</creationDate>
+	<version>1.0.0</version>
+	<author>Enrique Barcelli</author>
+	<authorEmail>e.barcelli@gmail.com</authorEmail>
+	<authorUrl>http://www.smt-acc.com</authorUrl>
+	<copyright>Copyright (C) 2021 SMART ACCOUNTS PTE. LTD. - All rights reserved. / Copyright (C) 2012-2021 Hikari Software</copyright>
+	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+	<description>This plugin enables you to setup your TripleA payment system</description>
+	<files>
+		<filename plugin="okpay">triplea.php</filename>
+		<filename>triplea_end.php</filename>
+		<filename>index.html</filename>
+	</files>
+	<params addpath="/components/com_hikashop/params">
+		<param name="pluginoptions" type="pluginoptions" default="plugin" label="hikashop" description="HikaShop options" />
+	</params>
+	<config>
+		<fields name="params" addfieldpath="/components/com_hikashop/fields">
+			<fieldset name="basic">
+				<field id="pluginoptions" name="pluginoptions" type="pluginoptions" label="hikashop" description="HikaShop options" />
+			</fieldset>
+		</fields>
+	</config>
+</extension>

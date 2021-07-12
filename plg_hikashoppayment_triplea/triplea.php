@@ -5,8 +5,8 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 
 	var $accepted_currencies = array(
 		'AUD','CAD','EUR','GBP','JPY','USD','NZD','CHF','SGD',
-		'DKK','PLN','NOK','CZK','MXN','MYR','PHP','TWD','ILS',
-		'RUB','CNY','NGN'
+		'NOK','MYR','PHP','TWD',
+		'HKD','IDR','KRW','SEK','THB','VND'
 	);
 	var $debugData = array();
 	var $multiple = true;
@@ -14,6 +14,9 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 	var $pluginConfig = array(
 		'url' => array('URL', 'input'),
 		'walletid' => array('TripleA Wallet ID', 'input'),
+		'merchant_key'=>array('TripleA Merchant Key', 'input'),
+		'client_id'=>array('TripleA Client ID','input'),
+		'notify_secret'=>array('TripleA Client secret','input'),
 		'invalid_status' => array('INVALID_STATUS', 'orderstatus'),
 		'pending_status' => array('PENDING_STATUS', 'orderstatus'),
 		'verified_status' => array('VERIFIED_STATUS', 'orderstatus')
@@ -27,8 +30,9 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		$cancel_url		= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid;
 
 		$vars = array(
+			"type"				=> 'triplea',
 			"ok_receiver"			=> $this->payment_params->walletid,
-			"ok_currency"			=> $this->currency->currency_code,
+			"order_currency"			=> $this->currency->currency_code,
 			"invoice"				=> $order->order_id,
 			"ok_return_success"		=> $return_url,
 			"ok_ipn"				=> $notify_url,

@@ -13,10 +13,9 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 	var $name = 'triplea';
 	var $pluginConfig = array(
 		'url' => array('URL', 'input'),
-//		'walletid' => array('TripleA Wallet ID', 'input'),
 		'merchant_key'=>array('TripleA Merchant Key', 'input'),
-		'client_id'=>array('TripleA Client ID','input'),
-		'notify_secret'=>array('TripleA Client secret','input'),
+		'access_token'=>array('TripleA Access Token','input'),
+		'notify_secret'=>array('Notify Secret','input'),
 		'sandbox'=>array('Set as testing environment','boolean','0'),
 		'invalid_status' => array('INVALID_STATUS', 'orderstatus'),
 		'pending_status' => array('PENDING_STATUS', 'orderstatus'),
@@ -27,37 +26,58 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		parent::onAfterOrderConfirm($order, $methods, $method_id);
 
 		$notify_url 	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=notify&notif_payment=triplea&tmpl=component&&invoice='.$order->order_id.'lang='.$this->locale.$this->url_itemid;
-		$return_url		= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid;
+		$success_url		= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid;
 		$cancel_url		= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid;
+		$type = 'triplea';
+		$merchant_key = $pluginConfig['merchant_key'];
+		$access_token = $pluginConfig['access_token'];
+		$order_currency = $this->currency->currency_code;
+		$order_amount = $order->order_full_price;
+		$notify_secret = $pluginConfig['notify_secret'];
+		$notify_txs = true;
+		$payer_id = $order->order_uer_id;
+		$order_id = $order->order_id;
+		$sandbox = $pluginConfig['sandbox'];
 
-		$vars = array(
-			"type"				=> 'triplea',
-			"ok_receiver"			=> $this->payment_params->walletid,
-			"order_currency"			=> $this->currency->currency_code,
-			"invoice"				=> $order->order_id,
-			"ok_return_success"		=> $return_url,
-			"ok_ipn"				=> $notify_url,
-			"ok_return_fail"		=> $cancel_url
-		);
+		$curl = curl_init();
 
-		$i = 1;
+		curl_setopt_array($curl, array(
+  			CURLOPT_URL => $pluginConfig['url'].'/payment',
+  			CURLOPT_RETURNTRANSFER => true,
+  			CURLOPT_ENCODING => '',
+  			CURLOPT_MAXREDIRS => 10,
+  			CURLOPT_TIMEOUT => 0,
+  			CURLOPT_FOLLOWLOCATION => true,
+  			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  			CURLOPT_CUSTOMREQUEST => 'POST',
+  			CURLOPT_POSTFIELDS =>'{
+    				"type": '.$type.',
+    				"merchant_key": '.$merchant_key.',
+    				"order_currency": '.$order_currency.',
+    				"order_amount": '.$order_amount.',
+    				"payer_id": '.$payer_id.',
+    				"success_url": '.$success_url.',
+    				"cancel_url": '.$cancel_url.',
+    				"notify_url": '.$notiry_url.',
+    				"notify_secret": '.$notify_secret.',
+    				"notify_txs": '.$notify_txs.',
+    				"webhook_data": {
+        				"order_id": '.$order_id.'
+    				},
+    				"sandbox": '.$sandbox.'
+		}',
+  			CURLOPT_HTTPHEADER => array(
+    				'Authorization: Bearer '.$access_token,
+    				'Content-Type: application/json'
+  			),
+		));
 
-		$config =& hikashop_config();
-		$group = $config->get('group_options',0);
-		foreach($order->cart->products as $product){
-			if($group && $product->order_product_option_parent_id) continue;
-			$item_price							= round($product->order_product_price,(int)$this->currency->currency_locale['int_frac_digits']) + round($product->order_product_tax,(int)$this->currency->currency_locale['int_frac_digits'])*$product->order_product_quantity;
-			$vars["ok_item_".$i."_name"]		= substr(strip_tags($product->order_product_name),0,127);
-			$vars["ok_item_".$i."_quantity"]	= $product->order_product_quantity;
-			$vars["ok_item_".$i."_price"]		= $item_price;
-			$i++;
-		}
+		$response = curl_exec($curl);
 
-		$this->vars = $vars;
-
-		return $this->showPage('end');
+		curl_close($curl);
+		echo $response;
 	}
-
+/*
 	function onPaymentNotification(&$statuses){
 		$vars	= array();
 		$data	= array();
@@ -181,13 +201,16 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 
 		return true;
 	}
+*/
 
 	function getPaymentDefaultValues(&$element) {
 		$element->payment_name='TripleA';
 		$element->payment_description='You can pay by TripleA using this payment method';
 		$element->payment_images='';
-
-		$element->payment_params->url='https://www.okpay.com/process.html';
+		$element->payment_params->url='https://api.triple-a.io/api/v2';
+		$element->payment_params->merchant_key='Your merchant key with TripleA';
+		$element->payment_params->access_token='Your access token with TripleA';
+		$element->payment_params->sandbox=true;
 		$element->payment_params->notification=1;
 		$element->payment_params->details=0;
 		$element->payment_params->invalid_status='cancelled';

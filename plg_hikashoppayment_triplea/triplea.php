@@ -13,10 +13,11 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 	var $name = 'triplea';
 	var $pluginConfig = array(
 		'url' => array('URL', 'input'),
-		'walletid' => array('TripleA Wallet ID', 'input'),
+//		'walletid' => array('TripleA Wallet ID', 'input'),
 		'merchant_key'=>array('TripleA Merchant Key', 'input'),
 		'client_id'=>array('TripleA Client ID','input'),
 		'notify_secret'=>array('TripleA Client secret','input'),
+		'sandbox'=>array('Set as testing environment','boolean','0'),
 		'invalid_status' => array('INVALID_STATUS', 'orderstatus'),
 		'pending_status' => array('PENDING_STATUS', 'orderstatus'),
 		'verified_status' => array('VERIFIED_STATUS', 'orderstatus')

@@ -25,19 +25,27 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 	function onAfterOrderConfirm(&$order,&$methods,$method_id){
 		parent::onAfterOrderConfirm($order, $methods, $method_id);
 
-		$notify_url 	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=notify&notif_payment=triplea&tmpl=component&&invoice='.$order->order_id.'lang='.$this->locale.$this->url_itemid;
-		$success_url		= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid;
-		$cancel_url		= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid;
-		$type = 'triplea';
-		$merchant_key = $pluginConfig['merchant_key'];
-		$access_token = $pluginConfig['access_token'];
-		$order_currency = $this->currency->currency_code;
-		$order_amount = $order->order_full_price;
-		$notify_secret = $pluginConfig['notify_secret'];
-		$notify_txs = true;
-		$payer_id = $order->order_uer_id;
-		$order_id = $order->order_id;
-		$sandbox = $pluginConfig['sandbox'];
+		$postvars = array();
+
+		$postvars['notify_url']	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=notify&notif_payment=triplea&tmpl=component&&invoice='.$order->order_id.'lang='.$this->locale.$this->url_itemid;
+		$postvars['success_url'] = HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid;
+		$postvars['cancel_url']	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid;
+		$postvars['type'] = 'triplea';
+		$postvars['merchant_key'] = $pluginConfig['merchant_key'];
+		$postvars['access_token'] = $pluginConfig['access_token'];
+		$postvars['order_currency'] = $this->currency->currency_code;
+		$postvars['order_amount'] = $order->order_full_price;
+		$postvars['notify_secret'] = $pluginConfig['notify_secret'];
+		$postvars['notify_txs'] = true;
+		$postvars['payer_id'] = $order->order_uer_id;
+		$postvars['order_id'] = $order->order_id;
+		$postvars['sandbox'] = $pluginConfig['sandbox'];
+		$postvars['webhook_data'] = array(
+					"order_id" => $order_id);
+
+		$httpheader = array();
+		$httpheader['Autorization'] = "Bearer $access_token";
+		$httpheader['Content-Type'] = "application/json";
 
 		$curl = curl_init();
 
@@ -50,25 +58,8 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
   			CURLOPT_FOLLOWLOCATION => true,
   			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
   			CURLOPT_CUSTOMREQUEST => 'POST',
-  			CURLOPT_POSTFIELDS =>'{
-    				"type": "'.$type.'",
-    				"merchant_key": "'.$merchant_key.'",
-    				"order_currency": "'.$order_currency.'",
-    				"order_amount": '.$order_amount.',
-    				"payer_id": "'.$payer_id.'",
-    				"success_url": "'.$success_url.'",
-    				"cancel_url": "'.$cancel_url.'",
-    				"notify_url": "'.$notiry_url.'",
-    				"notify_secret": "'.$notify_secret.'",
-    				"notify_txs": '.$notify_txs.',
-    				"webhook_data": {
-        				"order_id": "'.$order_id.'"
-    				},
-    				"sandbox": '.$sandbox.'
-		}',
-  			CURLOPT_HTTPHEADER => array(
-    				'Authorization: Bearer '.$access_token,
-    				'Content-Type: application/json'
+  			CURLOPT_POSTFIELDS => $postvars,
+  			CURLOPT_HTTPHEADER => $httpheader
   			),
 		));
 

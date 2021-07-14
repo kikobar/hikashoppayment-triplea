@@ -10,7 +10,7 @@
 	<license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 	<description>This plugin enables you to setup your TripleA payment system</description>
 	<files>
-		<filename plugin="okpay">triplea.php</filename>
+		<filename plugin="triplea">triplea.php</filename>
 		<filename>triplea_end.php</filename>
 		<filename>index.html</filename>
 	</files>

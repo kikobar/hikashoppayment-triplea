@@ -51,18 +51,18 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
   			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
   			CURLOPT_CUSTOMREQUEST => 'POST',
   			CURLOPT_POSTFIELDS =>'{
-    				"type": '.$type.',
-    				"merchant_key": '.$merchant_key.',
-    				"order_currency": '.$order_currency.',
+    				"type": "'.$type.'",
+    				"merchant_key": "'.$merchant_key.'",
+    				"order_currency": "'.$order_currency.'",
     				"order_amount": '.$order_amount.',
-    				"payer_id": '.$payer_id.',
-    				"success_url": '.$success_url.',
-    				"cancel_url": '.$cancel_url.',
-    				"notify_url": '.$notiry_url.',
-    				"notify_secret": '.$notify_secret.',
+    				"payer_id": "'.$payer_id.'",
+    				"success_url": "'.$success_url.'",
+    				"cancel_url": "'.$cancel_url.'",
+    				"notify_url": "'.$notiry_url.'",
+    				"notify_secret": "'.$notify_secret.'",
     				"notify_txs": '.$notify_txs.',
     				"webhook_data": {
-        				"order_id": '.$order_id.'
+        				"order_id": "'.$order_id.'"
     				},
     				"sandbox": '.$sandbox.'
 		}',

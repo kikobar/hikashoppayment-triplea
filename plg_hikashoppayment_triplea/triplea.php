@@ -37,7 +37,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		$postvars['order_amount'] = $order->order_full_price;
 		$postvars['notify_secret'] = $pluginConfig['notify_secret'][1];
 		$postvars['notify_txs'] = true;
-		$postvars['payer_id'] = $order->order_uer_id;
+		$postvars['payer_id'] = $order->order_user_id;
 		$postvars['order_id'] = $order->order_id;
 		$postvars['sandbox'] = $pluginConfig['sandbox'][1];
 		$postvars['webhook_data'] = array(

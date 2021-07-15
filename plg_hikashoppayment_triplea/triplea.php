@@ -31,15 +31,15 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		$postvars['success_url'] = HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid;
 		$postvars['cancel_url']	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid;
 		$postvars['type'] = 'triplea';
-		$postvars['merchant_key'] = $pluginConfig['merchant_key'];
-		$postvars['access_token'] = $pluginConfig['access_token'];
+		$postvars['merchant_key'] = $pluginConfig['merchant_key'][1];
+		$postvars['access_token'] = $pluginConfig['access_token'][1];
 		$postvars['order_currency'] = $this->currency->currency_code;
 		$postvars['order_amount'] = $order->order_full_price;
-		$postvars['notify_secret'] = $pluginConfig['notify_secret'];
+		$postvars['notify_secret'] = $pluginConfig['notify_secret'][1];
 		$postvars['notify_txs'] = true;
 		$postvars['payer_id'] = $order->order_uer_id;
 		$postvars['order_id'] = $order->order_id;
-		$postvars['sandbox'] = $pluginConfig['sandbox'];
+		$postvars['sandbox'] = $pluginConfig['sandbox'][1];
 		$postvars['webhook_data'] = array(
 					"order_id" => $order_id);
 
@@ -50,7 +50,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		$curl = curl_init();
 
 		curl_setopt_array($curl, array(
-  			CURLOPT_URL => $pluginConfig['url'].'/payment',
+  			CURLOPT_URL => $pluginConfig['url'][1].'/payment',
   			CURLOPT_RETURNTRANSFER => true,
   			CURLOPT_ENCODING => '',
   			CURLOPT_MAXREDIRS => 10,

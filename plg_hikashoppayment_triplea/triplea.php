@@ -61,7 +61,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
   			CURLOPT_POSTFIELDS => $postvars,
   			CURLOPT_HTTPHEADER => $httpheader
   			),
-		));
+		);
 
 		$response = curl_exec($curl);
 

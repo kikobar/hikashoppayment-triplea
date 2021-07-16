@@ -26,32 +26,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 	function onAfterOrderConfirm(&$order,&$methods,$method_id){
 		parent::onAfterOrderConfirm($order, $methods, $method_id);
 
-		$postvars = array();
-
-		$postvars['notify_url']	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=notify&notif_payment=triplea&tmpl=component&&invoice='.$order->order_id.'lang='.$this->locale.$this->url_itemid;
-		$postvars['success_url'] = HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid;
-		$postvars['cancel_url']	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid;
-		$postvars['type'] = 'triplea';
-		$postvars['merchant_key'] = $this->payment_params->merchant_key;
-		$postvars['order_currency'] = $this->currency->currency_code;
-		$postvars['order_amount'] = $order->order_full_price;
-		$postvars['notify_secret'] = $this->payment_params->notify_secret;
-		$postvars['notify_txs'] = true;
-		$postvars['payer_id'] = (string)$order->order_user_id;
-		$postvars['payer_name'] = $order->cart->billing_address->address_firstname." ".$order->cart->billing_address->address_lastname;
-		$postvars['payer_email'] = $this->user->user_email;
-		$postvars['payer_phone'] = (string)$order->cart->billing_address->address_telephone;
-		$postvars['sandbox'] = (bool)$this->payment_params->sandbox;
-//		$postvars['webhook_data'] = array(
-//					"order_id" => $order->order_id);
-
-		$httpheader = array(
-			'Autorization: Bearer '.$this->payment_params->access_token,
-			'Content-type: application/json'
-			);
 		$payment_url = $this->payment_params->url.'/payment';
-
-		var_dump($postvars);
 
 		$curl = curl_init();
 
@@ -64,19 +39,41 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
   			CURLOPT_FOLLOWLOCATION => true,
   			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
   			CURLOPT_CUSTOMREQUEST => 'POST',
-  			CURLOPT_POSTFIELDS => $postvars,
-  			CURLOPT_HTTPHEADER => $httpheader
-  			),
+			CURLOPT_POSTFIELDS =>'{
+				"type": "triplea",
+				"merchant_key": "'.$this->payment_params->merchant_key.'",
+				"order_currency": "'.$this->currency->currency_code.'",
+				"order_amount": '.$order->order_full_price.',
+				"payer_id": "'.(string)$order->order_user_id.'",
+				"payer_name": "'.$order->cart->billing_address->address_firstname.' '.$order->cart->billing_address->address_lastname.'",
+				"payer_email": "'.$this->user->user_email.'",
+				"payer_phone": "'.(string)$order->cart->billing_address->address_telephone.'",
+				"success_url": "'.HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid.'",
+				"cancel_url": "'.HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid.'",
+				"notify_url": "'.HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=notify&notif_payment='.$this->name.'&tmpl=component&lang='.$this->locale.$this->url_itemid.'",
+				"notify_secret": "'.$this->payment_params->notify_secret.'",
+				"notify_txs": true,
+				"sandbox": '.$this->payment_params->sandbox.'
+			}',
+			CURLOPT_HTTPHEADER => array(
+			'Authorization: Bearer '.$this->payment_params->access_token,
+			'Content-Type: application/json'
+			),
+  			)
 		);
 
 		$response = curl_exec($curl);
 
 		curl_close($curl);
-		echo $response;
-		var_dump($response);
+//		echo $response;					//for debug only
+		$responsearr = json_decode($response,true);
+		$hosted_url = $responsearr['hosted_url'];
+//		var_dump($responsearr);				//for debug only
+//		echo $responsearr['hosted_url'];		//for debug only
+		header('Location: '.$hosted_url);
 
 	}
-
+/*
 	function onPaymentNotification(&$statuses){
 
 //		All the logic for registering the payment confirmation/cancellation/etc is still missing
@@ -106,7 +103,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		curl_close($curl);
 		echo $response;
 	}
-
+*/
 	function getPaymentDefaultValues(&$element) {
 		$element->payment_name='TripleA';
 		$element->payment_description='You can pay by TripleA using this payment method';

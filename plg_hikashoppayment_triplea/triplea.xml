@@ -12,7 +12,6 @@
 	<files>
 		<filename plugin="triplea">triplea.php</filename>
 		<filename>triplea_end.php</filename>
-		<filename>index.html</filename>
 	</files>
 	<params addpath="/components/com_hikashop/params">
 		<param name="pluginoptions" type="pluginoptions" default="plugin" label="hikashop" description="HikaShop options" />

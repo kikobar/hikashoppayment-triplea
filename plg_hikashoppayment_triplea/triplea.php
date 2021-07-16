@@ -31,26 +31,31 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		$postvars['success_url'] = HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=checkout&task=after_end&order_id='.$order->order_id.$this->url_itemid;
 		$postvars['cancel_url']	= HIKASHOP_LIVE.'index.php?option=com_hikashop&ctrl=order&task=cancel_order&order_id='.$order->order_id.$this->url_itemid;
 		$postvars['type'] = 'triplea';
-		$postvars['merchant_key'] = $pluginConfig['merchant_key'][1];
-		$postvars['access_token'] = $pluginConfig['access_token'][1];
+		$postvars['merchant_key'] = $this->payment_params->merchant_key;
 		$postvars['order_currency'] = $this->currency->currency_code;
 		$postvars['order_amount'] = $order->order_full_price;
-		$postvars['notify_secret'] = $pluginConfig['notify_secret'][1];
+		$postvars['notify_secret'] = $this->payment_params->notify_secret;
 		$postvars['notify_txs'] = true;
 		$postvars['payer_id'] = $order->order_user_id;
-		$postvars['order_id'] = $order->order_id;
-		$postvars['sandbox'] = $pluginConfig['sandbox'][1];
-		$postvars['webhook_data'] = array(
-					"order_id" => $order_id);
+		$postvars['payer_name'] = $order->cart->billing_address->address_firstname." ".$order->cart->billing_address->address_lastname;
+		$postvars['payer_email'] = $this->user->user_email;
+		$postvars['payer_phone'] = $order->cart->billing_address->address_telephone;
+		$postvars['sandbox'] = (bool)$this->payment_params->sandbox;
+//		$postvars['webhook_data'] = array(
+//					"order_id" => $order->order_id);
 
-		$httpheader = array();
-		$httpheader['Autorization'] = "Bearer $access_token";
-		$httpheader['Content-Type'] = "application/json";
+		$httpheader = array(
+			'Autorization: Bearer '.$this->payment_params->access_token,
+			'Content-type: application/json'
+			);
+		$payment_url = $this->payment_params->url.'/payment';
+
+		var_dump($postvars);
 
 		$curl = curl_init();
 
 		curl_setopt_array($curl, array(
-  			CURLOPT_URL => $pluginConfig['url'][1].'/payment',
+  			CURLOPT_URL => $payment_url,
   			CURLOPT_RETURNTRANSFER => true,
   			CURLOPT_ENCODING => '',
   			CURLOPT_MAXREDIRS => 10,
@@ -67,131 +72,17 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 
 		curl_close($curl);
 		echo $response;
+
 	}
 /*
+
+//	This is where the payment notification function should sit
+
 	function onPaymentNotification(&$statuses){
-		$vars	= array();
-		$data	= array();
-		$filter	=& JFilterInput::getInstance();
-
-		foreach($_REQUEST as $key => $val){
-			$vars[$key] = $val;
-		}
-
-		$order_id = (int)@$vars['invoice'];
-		$order_status = '';
-		$dbOrder	= $this->getOrder($order_id);
-
-		if(empty($dbOrder)){
-			echo "Could not load any order for your notification ".@$vars['invoice'];
-			return false;
-		}
-
-		$this->loadPaymentParams($dbOrder);
-		if(empty($this->payment_params))
-			return false;
-		$this->loadOrderData($dbOrder);
-		if($this->payment_params->debug){
-			echo print_r($vars,true)."\n\n\n";
-			echo print_r($dbOrder,true)."\n\n\n";
-		}
-
-		$url			= HIKASHOP_LIVE.'administrator/index.php?option=com_hikashop&ctrl=order&task=edit&order_id='.$order_id;
-		$order_text		= "\r\n".JText::sprintf('NOTIFICATION_OF_ORDER_ON_WEBSITE',$dbOrder->order_number,HIKASHOP_LIVE);
-		$order_text		.= "\r\n".str_replace('<br/>',"\r\n",JText::sprintf('ACCESS_ORDER_WITH_LINK',$url));
-
-		$email = new stdClass();
-		$history = new stdClass();
-		$response = $vars['ok_txn_status'];
-
-		$verified = preg_match( "#completed#i", $response);
-
-		// verify transacrion through TripleA
-		$req = 'ok_verify=true';
-
-		foreach ($_POST as $key => $value) {
-			$value = urlencode(stripslashes($value));
-			$req .= "&$key=$value";
-		}
-
-		$header  = "POST /ipn-verify.html HTTP/1.0\r\n";
-		$header .= "Host: www.okpay.com\r\n";
-		$header .= "Content-Type: application/x-www-form-urlencoded\r\n";
-		$header .= "Content-Length: " . strlen($req) . "\r\n\r\n";
-		$fp = fsockopen ('www.okpay.com', 80, $errno, $errstr, 30);
-
-		if (!$fp)
-		{
-			// HTTP ERROR
-		} else
-		{
-			// NO HTTP ERROR
-			fputs ($fp, $header . $req);
-			while (!feof($fp))
-			{
-			$res = fgets ($fp, 1024);
-			if (strcmp ($res, "VERIFIED") == 0)
-			{
-				$vars['ok_response'] = $res;
-			}
-			else if (strcmp ($res, "INVALID") == 0)
-			{
-				// If 'INVALID', send an email. TODO: Log for manual investigation.
-				$vars['ok_response'] = $res;
-			}
-			else if (strcmp ($res, "TEST")== 0)
-			{
-				$vars['ok_response'] = $res;
-			}
-			}
-			fclose ($fp);
-		}
-
-		$vars['ok_verified'] = preg_match('/verified/i', @$vars['ok_response']);
-		// end verify transacrion through TripleA
-
-		if(!$verified && !$vars['ok_verified']){
-			$email->subject = JText::sprintf('NOTIFICATION_REFUSED_FOR_THE_ORDER','TripleA').'invalid transaction';
-			$email->body = JText::sprintf("Hello,\r\n A TripleA notification was refused because it could not be verified by the TripleA server")."\r\n\r\n".JText::sprintf('CHECK_DOCUMENTATION',HIKASHOP_HELPURL.'payment-triplea-error#invalidtnx').$order_text;
-
-			$this->modifyOrder($order_id,null,false,$email);
-			return false;
-		} else {
-			$email->subject = JText::sprintf('NOTIFICATION_REFUSED_FOR_THE_ORDER','TripleA').'invalid transaction';
-			$email->body = JText::sprintf("Hello,\r\n A TripleA notification was refused because it could not be verified by the tripleA server")."\r\n\r\n".JText::sprintf('CHECK_DOCUMENTATION',HIKASHOP_HELPURL.'payment-triplea-error#invalidtnx').$order_text;
-
-			$this->modifyOrder($order_id,null,false,$email);
-		}
-
-		$history->notified=0;
-		$history->amount=@$vars['ok_txn_gross'].@$vars['ok_txn_currency'];
-		$history->data = ob_get_clean();
-
-		$price_check = round($dbOrder->order_full_price, (int)$this->currency->currency_locale['int_frac_digits'] );
-
-		if($price_check != @$vars['ok_txn_gross'] || $this->currency->currency_code != @$vars['ok_txn_currency']){
-			$order_status = $this->payment_params->invalid_status;
-
-			$email->subject=JText::sprintf('NOTIFICATION_REFUSED_FOR_THE_ORDER','TripleA').JText::_('INVALID_AMOUNT');
-			$email->body=str_replace('<br/>',"\r\n",JText::sprintf('AMOUNT_RECEIVED_DIFFERENT_FROM_ORDER','TripleA',$history->amount,$price_check.$this->currency->currency_code))."\r\n\r\n".JText::sprintf('CHECK_DOCUMENTATION',HIKASHOP_HELPURL.'payment-triplea-error#amount').$order_text;
-
-			$this->modifyOrder($order_id,$order_status,$history,$email);
-			return false;
-		}
-
-		$order_status = $this->payment_params->verified_status;
-		$history->notified=1;
-
-		if($dbOrder->order_status == $order_status)
-			return true;
-		$mail_status=$statuses[$order_status];
-		$email->subject = JText::sprintf('PAYMENT_NOTIFICATION_FOR_ORDER','TripleA',$vars['ok_txn_status'],$dbOrder->order_number);
-		$email->body = str_replace('<br/>',"\r\n",JText::sprintf('PAYMENT_NOTIFICATION_STATUS','TripleA',$vars['ok_txn_status'])).' '.JText::sprintf('ORDER_STATUS_CHANGED',$mail_status)."\r\n\r\n".$order_text;
-
-		$this->modifyOrder($order_id,$order_status,$history,$email);
-
-		return true;
+//		$vars	= array();
+//		$data	= array();
 	}
+
 */
 
 	function getPaymentDefaultValues(&$element) {

@@ -15,6 +15,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		'url' => array('URL', 'input'),
 		'merchant_key'=>array('TripleA Merchant Key', 'input'),
 		'access_token'=>array('TripleA Access Token','input'),
+		'notification'=>array('Allow payment notifications from TripleA','boolean','1'),
 		'notify_secret'=>array('Notify Secret','input'),
 		'sandbox'=>array('Set as testing environment','boolean','0'),
 		'invalid_status' => array('INVALID_STATUS', 'orderstatus'),
@@ -36,10 +37,10 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 		$postvars['order_amount'] = $order->order_full_price;
 		$postvars['notify_secret'] = $this->payment_params->notify_secret;
 		$postvars['notify_txs'] = true;
-		$postvars['payer_id'] = $order->order_user_id;
+		$postvars['payer_id'] = (string)$order->order_user_id;
 		$postvars['payer_name'] = $order->cart->billing_address->address_firstname." ".$order->cart->billing_address->address_lastname;
 		$postvars['payer_email'] = $this->user->user_email;
-		$postvars['payer_phone'] = $order->cart->billing_address->address_telephone;
+		$postvars['payer_phone'] = (string)$order->cart->billing_address->address_telephone;
 		$postvars['sandbox'] = (bool)$this->payment_params->sandbox;
 //		$postvars['webhook_data'] = array(
 //					"order_id" => $order->order_id);
@@ -72,18 +73,39 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 
 		curl_close($curl);
 		echo $response;
+		var_dump($response);
 
 	}
-/*
-
-//	This is where the payment notification function should sit
 
 	function onPaymentNotification(&$statuses){
+
+//		All the logic for registering the payment confirmation/cancellation/etc is still missing
+
+
 //		$vars	= array();
 //		$data	= array();
-	}
 
-*/
+		$curl = curl_init();
+
+		curl_setopt_array($curl, array(
+  			CURLOPT_URL => 'https://api.triple-a.io/api/v2/payment/QCN-592345-PMT?verbose=1',
+  			CURLOPT_RETURNTRANSFER => true,
+  			CURLOPT_ENCODING => '',
+  			CURLOPT_MAXREDIRS => 10,
+  			CURLOPT_TIMEOUT => 0,
+  			CURLOPT_FOLLOWLOCATION => true,
+  			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+  			CURLOPT_CUSTOMREQUEST => 'GET',
+  			CURLOPT_HTTPHEADER => array(
+    				'Authorization: Bearer '.$this->payment_params->access_token
+  			),
+		));
+
+		$response = curl_exec($curl);
+
+		curl_close($curl);
+		echo $response;
+	}
 
 	function getPaymentDefaultValues(&$element) {
 		$element->payment_name='TripleA';

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" version="2.5" method="upgrade" group="hikashoppayment">
 	<name>Hikashop TripleA Payment Plugin</name>
-	<creationDate>10 July 2021</creationDate>
-	<version>1.0.0</version>
+	<creationDate>17 July 2021</creationDate>
+	<version>1.0.1</version>
 	<author>Enrique Barcelli</author>
 	<authorEmail>e.barcelli@gmail.com</authorEmail>
 	<authorUrl>http://www.smt-acc.com</authorUrl>
@@ -11,7 +11,6 @@
 	<description>This plugin enables you to setup your TripleA payment system</description>
 	<files>
 		<filename plugin="triplea">triplea.php</filename>
-		<filename>triplea_end.php</filename>
 	</files>
 	<params addpath="/components/com_hikashop/params">
 		<param name="pluginoptions" type="pluginoptions" default="plugin" label="hikashop" description="HikaShop options" />

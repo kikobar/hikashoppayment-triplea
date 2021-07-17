@@ -106,7 +106,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 */
 	function getPaymentDefaultValues(&$element) {
 		$element->payment_name='TripleA';
-		$element->payment_description='You can pay by TripleA using this payment method';
+		$element->payment_description='TripleA - pay with crypto';
 		$element->payment_images='';
 		$element->payment_params->url='https://api.triple-a.io/api/v2';
 		$element->payment_params->merchant_key='Your merchant key with TripleA';

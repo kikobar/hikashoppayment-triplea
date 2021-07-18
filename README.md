@@ -9,7 +9,7 @@ Smart Accounts ( https://www.smt-acc.com )
 Smart Accounts ( https://www.smt-acc.com )
 
 ## More details
-**This version of the code is work-in-progress and should not be use in any production site.**
+**This version of the code is released for testing. Use carefully on production sites.**
 At this stage the plugin is able to accept payments, but cannot receive payment notifications or process refunds.
 
 The TripleA Cryptocurrency Payments API is documented here:

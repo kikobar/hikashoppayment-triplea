@@ -26,6 +26,23 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 	function onAfterOrderConfirm(&$order,&$methods,$method_id){
 		parent::onAfterOrderConfirm($order, $methods, $method_id);
 
+		$tacart = array();
+		foreach($order->cart->products as $v) {
+			$temp = array();
+			$temp['sku'] = $v->product_id;
+			$temp['label'] = $v->order_product_name;
+			$temp['quantity'] = (float)$v->order_product_quantity;
+			$temp['amount'] = ((float)$v->order_product_price+(float)$v->order_product_tax)*$temp['quantity'];
+			$tacart[] = $temp;
+		};
+		$tacart = array(
+			"items"=>$tacart,
+			"shipping_cost"=>$order->order_shipping_price,		//includes tax
+			"shipping_discount"=>$order->order_discount_price,		//includes tax
+			"tax_cost"=>0);						//tax included above
+		$tacart = json_encode($tacart);
+//		var_dump($tacart);				//debug only
+
 		$payment_url = $this->payment_params->url.'/payment';
 
 		$curl = curl_init();
@@ -44,6 +61,7 @@ class plgHikashoppaymentTriplea extends hikashopPaymentPlugin{
 				"merchant_key": "'.$this->payment_params->merchant_key.'",
 				"order_currency": "'.$this->currency->currency_code.'",
 				"order_amount": '.$order->order_full_price.',
+				"cart": '.$tacart.',
 				"payer_id": "'.(string)$order->order_user_id.'",
 				"payer_name": "'.$order->cart->billing_address->address_firstname.' '.$order->cart->billing_address->address_lastname.'",
 				"payer_email": "'.$this->user->user_email.'",
